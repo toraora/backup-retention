@@ -55,23 +55,25 @@ func NewPolicy(periodStr string, modeStr string, num int) (*Policy, error) {
 // CopySnapshotAndEnforce copes the latest snapshot and then enforces the given Policy
 func (p *Policy) CopySnapshotAndEnforce(b Backend, dryRun bool) error {
 	// copy latest
-	files, err := b.ListFiles("")
-	if err != nil {
-		return err
-	}
-	if len(files) == 0 {
-		return errors.New("could not find latest snapshot")
-	}
-	SortFilesByCreated(files, false)
-	latestFile := files[0]
-	destinationName := fmt.Sprintf("%s/%s", p.period, latestFile.Name)
-	err = b.CopyFile(latestFile.Name, destinationName)
-	if err != nil {
-		return err
+	if p.period != snapshot {
+		files, err := b.ListFiles("")
+		if err != nil {
+			return err
+		}
+		if len(files) == 0 {
+			return errors.New("could not find latest snapshot")
+		}
+		SortFilesByCreated(files, false)
+		latestFile := files[0]
+		destinationName := fmt.Sprintf("%s/%s", p.period, latestFile.Name)
+		err = b.CopyFile(latestFile.Name, destinationName)
+		if err != nil {
+			return err
+		}
 	}
 
 	// delete old backups
-	files, err = b.ListFiles(string(p.period))
+	files, err := b.ListFiles(string(p.period))
 	if err != nil {
 		return err
 	}
